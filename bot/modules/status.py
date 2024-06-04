@@ -1,4 +1,4 @@
-from psutil import cpu_percent, virtual_memory, disk_usage
+from psutil import cpu_percent, virtual_memory, disk_usage, net_io_counters
 from pyrogram.filters import command, regex
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from time import time
@@ -147,6 +147,7 @@ async def status_pages(_, query):
 <b>ODLS:</b> {get_readable_file_size(dl_speed)}/s
 <b>OULS:</b> {get_readable_file_size(up_speed)}/s
 <b>OSDS:</b> {get_readable_file_size(seed_speed)}/s
+<b>OBWU:</b> {get_readable_file_size(net_io_counters().bytes_sent + net_io_counters().bytes_recv)}
 """
         button = ButtonMaker()
         button.ibutton("Back", f"status {data[1]} ref")

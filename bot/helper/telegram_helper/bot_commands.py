@@ -14,10 +14,10 @@ class _BotCommands:
         self.JdLeechCommand = [f"jdLeech{CMD_SUFFIX}", f"jl{CMD_SUFFIX}"]
         self.YtdlLeechCommand = [f"ytdlleech{CMD_SUFFIX}", f"yl{CMD_SUFFIX}"]
         self.NzbLeechCommand = [f"nzbleech{CMD_SUFFIX}", f"nl{CMD_SUFFIX}"]
-        self.CloneCommand = f"clone{CMD_SUFFIX}"
+        self.CloneCommand = [f"clone{CMD_SUFFIX}", f"c{CMD_SUFFIX}"]
         self.CountCommand = f"count{CMD_SUFFIX}"
         self.DeleteCommand = f"del{CMD_SUFFIX}"
-        self.CancelTaskCommand = [f"cancel{CMD_SUFFIX}", f"c{CMD_SUFFIX}"]
+        self.CancelTaskCommand = [f"abort{CMD_SUFFIX}", f"a{CMD_SUFFIX}"]
         self.CancelAllCommand = f"cancelall{CMD_SUFFIX}"
         self.ForceStartCommand = [f"forcestart{CMD_SUFFIX}", f"fs{CMD_SUFFIX}"]
         self.ListCommand = f"list{CMD_SUFFIX}"
@@ -28,8 +28,8 @@ class _BotCommands:
         self.UnAuthorizeCommand = f"unauthorize{CMD_SUFFIX}"
         self.AddSudoCommand = f"addsudo{CMD_SUFFIX}"
         self.RmSudoCommand = f"rmsudo{CMD_SUFFIX}"
-        self.PingCommand = f"ping{CMD_SUFFIX}"
-        self.RestartCommand = f"restart{CMD_SUFFIX}"
+        self.PingCommand = [f"ping{CMD_SUFFIX}", f"p{CMD_SUFFIX}"]
+        self.RestartCommand = [f"restart{CMD_SUFFIX}", f"r{CMD_SUFFIX}"]
         self.StatsCommand = f"stats{CMD_SUFFIX}"
         self.HelpCommand = f"help{CMD_SUFFIX}"
         self.LogCommand = f"log{CMD_SUFFIX}"

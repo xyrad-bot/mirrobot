@@ -10,27 +10,29 @@ from bot import (
     botStartTime,
     config_dict,
     status_dict,
+    user_data,
 )
 from bot.helper.ext_utils.bot_utils import sync_to_async
+from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
 SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
 
 
 class MirrorStatus:
-    STATUS_UPLOADING = "Upload"
-    STATUS_DOWNLOADING = "Download"
-    STATUS_CLONING = "Clone"
-    STATUS_QUEUEDL = "QueueDl"
-    STATUS_QUEUEUP = "QueueUp"
-    STATUS_PAUSED = "Pause"
-    STATUS_ARCHIVING = "Archive"
-    STATUS_EXTRACTING = "Extract"
-    STATUS_SPLITTING = "Split"
-    STATUS_CHECKING = "CheckUp"
-    STATUS_SEEDING = "Seed"
-    STATUS_SAMVID = "SamVid"
-    STATUS_CONVERTING = "Convert"
+    STATUS_UPLOADING = "Upload 📤"
+    STATUS_DOWNLOADING = "Download 📥"
+    STATUS_CLONING = "Clone 🔃"
+    STATUS_QUEUEDL = "QueueDL ⏳"
+    STATUS_QUEUEUP = "QueueUL ⏳"
+    STATUS_PAUSED = "Paused ⛔️"
+    STATUS_ARCHIVING = "Archive 🛠"
+    STATUS_EXTRACTING = "Extract 📂"
+    STATUS_SPLITTING = "Split ✂️"
+    STATUS_CHECKING = "CheckUp ⏱"
+    STATUS_SEEDING = "Seed 🌧"
+    STATUS_SAMVID = "SampleVid 🎬"
+    STATUS_CONVERTING = "Convert ♻️"
 
 
 STATUSES = {
@@ -144,8 +146,8 @@ def get_progress_bar_string(pct):
     pct = float(pct.strip("%"))
     p = min(max(pct, 0), 100)
     cFull = int(p // 8)
-    p_str = "■" * cFull
-    p_str += "□" * (12 - cFull)
+    p_str = "●" * cFull
+    p_str += "○" * (12 - cFull)
     return f"[{p_str}]"
 
 
@@ -170,16 +172,16 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         tasks[start_position : STATUS_LIMIT + start_position], start=1
     ):
         tstatus = await sync_to_async(task.status) if status == "All" else status
+        user_tag = task.listener.tag.replace("@", "").replace("_", " ")
+        cancel_task = (f"<code>/{BotCommands.CancelTaskCommand[1]} {task.gid()}</code>")
+        msg += "<blockquote>"
         if task.listener.isSuperChat:
-            msg += f"<b>{index + start_position}.<a href='{task.listener.message.link}'>{tstatus}</a>: </b>"
+            msg += f"<b>{index + start_position}.<a href='{task.listener.message.link}'>Task</a>: </b>"
         else:
-            msg += f"<b>{index + start_position}.{tstatus}: </b>"
+            msg += f"<b>{index + start_position}.Task: </b>"
         msg += f"<code>{escape(f'{task.name()}')}</code>"
         if tstatus not in [
-            MirrorStatus.STATUS_SPLITTING,
             MirrorStatus.STATUS_SEEDING,
-            MirrorStatus.STATUS_SAMVID,
-            MirrorStatus.STATUS_CONVERTING,
             MirrorStatus.STATUS_QUEUEUP,
         ]:
             progress = (
@@ -188,8 +190,10 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
                 else task.progress()
             )
             msg += f"\n{get_progress_bar_string(progress)} {progress}"
+            msg += f"\n<b>Status: </b>{tstatus}"
             msg += f"\n<b>Processed:</b> {task.processed_bytes()} of {task.size()}"
             msg += f"\n<b>Speed:</b> {task.speed()} | <b>ETA:</b> {task.eta()}"
+            msg += f"\n<b>User: </b><spoiler>{user_tag}</spoiler>"
             if hasattr(task, "seeders_num"):
                 try:
                     msg += f"\n<b>Seeders:</b> {task.seeders_num()} | <b>Leechers:</b> {task.leechers_num()}"
@@ -203,7 +207,8 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             msg += f" | <b>Time: </b>{task.seeding_time()}"
         else:
             msg += f"\n<b>Size: </b>{task.size()}"
-        msg += f"\n<b>Gid: </b><code>{task.gid()}</code>\n\n"
+        msg += f"\n<b>Stop: </b>{cancel_task}\n\n"
+        msg += "</blockquote>"
 
     if len(msg) == 0:
         if status == "All":
@@ -212,11 +217,11 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             msg = f"No Active {status} Tasks!\n\n"
     buttons = ButtonMaker()
     if not is_user:
-        buttons.ibutton("📜", f"status {sid} ov", position="header")
+        buttons.ibutton("status", f"status {sid} ov", position="header")
     if len(tasks) > STATUS_LIMIT:
         msg += f"<b>Page:</b> {page_no}/{pages} | <b>Tasks:</b> {tasks_no} | <b>Step:</b> {page_step}\n"
-        buttons.ibutton("<<", f"status {sid} pre", position="header")
-        buttons.ibutton(">>", f"status {sid} nex", position="header")
+        buttons.ibutton("⫷", f"status {sid} pre", position="header")
+        buttons.ibutton("⫸", f"status {sid} nex", position="header")
         if tasks_no > 30:
             for i in [1, 2, 4, 6, 8, 10, 15]:
                 buttons.ibutton(i, f"status {sid} ps {i}", position="footer")
@@ -224,8 +229,10 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         for label, status_value in list(STATUSES.items())[:9]:
             if status_value != status:
                 buttons.ibutton(label, f"status {sid} st {status_value}")
-    buttons.ibutton("♻️", f"status {sid} ref", position="header")
+    buttons.ibutton("refresh", f"status {sid} ref", position="header")
     button = buttons.build_menu(8)
+    msg += "<blockquote>"
     msg += f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
     msg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - botStartTime)}"
+    msg += "</blockquote>"
     return msg, button

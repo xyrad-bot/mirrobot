@@ -19,6 +19,7 @@ from time import time
 
 from bot import (
     bot,
+    user_data,
     botStartTime,
     LOGGER,
     Intervals,
@@ -58,7 +59,7 @@ from .modules import (
     bot_settings,
     help,
     force_start,
-)
+)  # noqa: F401
 
 
 async def stats(_, message):
@@ -95,26 +96,26 @@ async def stats(_, message):
 
 async def start(client, message):
     buttons = ButtonMaker()
-    buttons.ubutton("Repo", "https://www.github.com/anasty17/mirror-leech-telegram-bot")
-    buttons.ubutton("Owner", "https://t.me/anas_tayyar")
+    buttons.ubutton("Owner", "https://t.me/unil_vr")
+    buttons.ubutton("Channel", "https://t.me/xyradelw")
     reply_markup = buttons.build_menu(2)
     if await CustomFilters.authorized(client, message):
         start_string = f"""
-This bot can mirror all your links|files|torrents to Google Drive or any rclone cloud or to telegram.
-Type /{BotCommands.HelpCommand} to get a list of available commands
+Aku sudah aktif selama {get_readable_time(time() - botStartTime)}
+ketik /{BotCommands.HelpCommand} untuk membuka bantuan selengkapnya
 """
         await sendMessage(message, start_string, reply_markup)
     else:
         await sendMessage(
             message,
-            "You Are not authorized user! Deploy your own mirror-leech bot",
+            "Hi❓, sayangnya kamu gapunya otoritas untuk memanggilku di pm, makasih ",
             reply_markup,
         )
 
 
 async def restart(_, message):
     Intervals["stopAll"] = True
-    restart_message = await sendMessage(message, "Restarting...")
+    restart_message = await sendMessage(message, "Memulai ulang...")
     if scheduler.running:
         scheduler.shutdown(wait=False)
     if qb := Intervals["qb"]:
@@ -159,6 +160,7 @@ async def log(_, message):
 
 help_string = f"""
 NOTE: Try each command without any argument to see more detalis.
+<blockquote expandable>
 /{BotCommands.MirrorCommand[0]} or /{BotCommands.MirrorCommand[1]}: Start mirroring to cloud.
 /{BotCommands.QbMirrorCommand[0]} or /{BotCommands.QbMirrorCommand[1]}: Start Mirroring to cloud using qBittorrent.
 /{BotCommands.JdMirrorCommand[0]} or /{BotCommands.JdMirrorCommand[1]}: Start Mirroring to cloud using JDownloader.
@@ -195,6 +197,7 @@ NOTE: Try each command without any argument to see more detalis.
 /{BotCommands.ExecCommand}: Exec sync functions (Only Owner).
 /{BotCommands.ClearLocalsCommand}: Clear {BotCommands.AExecCommand} or {BotCommands.ExecCommand} locals (Only Owner).
 /{BotCommands.RssCommand}: RSS Menu.
+</blockquote>
 """
 
 
@@ -209,9 +212,9 @@ async def restart_notification():
     else:
         chat_id, msg_id = 0, 0
 
-    async def send_incompelete_task_message(cid, msg):
+    async def send_incomplete_task_message(cid, msg):
         try:
-            if msg.startswith("Restarted Successfully!"):
+            if msg.startswith("Mulai ulang berhasil!"):
                 await bot.edit_message_text(
                     chat_id=chat_id, message_id=msg_id, text=msg
                 )
@@ -229,21 +232,21 @@ async def restart_notification():
     if INCOMPLETE_TASK_NOTIFIER and DATABASE_URL:
         if notifier_dict := await DbManager().get_incomplete_tasks():
             for cid, data in notifier_dict.items():
-                msg = "Restarted Successfully!" if cid == chat_id else "Bot Restarted!"
+                msg = "Mulai ulang berhasil!" if cid == chat_id else "Bot Dimulai ulang!"
                 for tag, links in data.items():
-                    msg += f"\n\n{tag}: "
+                    msg += f"\n\nWoi kontol, do your task again {tag}: "
                     for index, link in enumerate(links, start=1):
                         msg += f" <a href='{link}'>{index}</a> |"
                         if len(msg.encode()) > 4000:
-                            await send_incompelete_task_message(cid, msg)
+                            await send_incomplete_task_message(cid, msg)
                             msg = ""
                 if msg:
-                    await send_incompelete_task_message(cid, msg)
+                    await send_incomplete_task_message(cid, msg)
 
     if await aiopath.isfile(".restartmsg"):
         try:
             await bot.edit_message_text(
-                chat_id=chat_id, message_id=msg_id, text="Restarted Successfully!"
+                chat_id=chat_id, message_id=msg_id, text="Mulai ulang berhasil!"
             )
         except:
             pass

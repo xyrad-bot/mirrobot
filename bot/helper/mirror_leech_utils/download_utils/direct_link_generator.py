@@ -135,6 +135,7 @@ def direct_link_generator(link):
             "terabox.app",
             "gibibox.com",
             "goaibox.com",
+            "terabox.fun",
         ]
     ):
         return terabox(link)
@@ -145,13 +146,14 @@ def direct_link_generator(link):
             "filelions.site",
             "filelions.live",
             "filelions.to",
+            "mycloudz.cc",
             "cabecabean.lol",
             "filelions.online",
             "embedwish.com",
-            "streamwish.com",
             "kitabmarkaz.xyz",
             "wishfast.top",
             "streamwish.to",
+            "kissmovies.net",
         ]
     ):
         return filelions_and_streamwish(link)
@@ -217,6 +219,11 @@ def get_captcha_token(session, params):
 def mediafire(url, session=None):
     if "/folder/" in url:
         return mediafireFolder(url)
+    if "::" in url:
+        _password = url.split("::")[-1]
+        url = url.split("::")[-2]
+    else:
+        _password = ""
     if final_link := findall(
         r"https?:\/\/download\d+\.mediafire\.com\/\S+\/\S+\/\S+", url
     ):
@@ -233,13 +240,30 @@ def mediafire(url, session=None):
     if error := html.xpath('//p[@class="notranslate"]/text()'):
         session.close()
         raise DirectDownloadLinkException(f"ERROR: {error[0]}")
+    if html.xpath("//div[@class='passwordPrompt']"):
+        if not _password:
+            session.close()
+            raise DirectDownloadLinkException(
+                f"ERROR: {PASSWORD_ERROR_MESSAGE}".format(url)
+            )
+        try:
+            html = HTML(session.post(url, data={"downloadp": _password}).text)
+        except Exception as e:
+            session.close()
+            raise DirectDownloadLinkException(f"ERROR: {e.__class__.__name__}") from e
+        if html.xpath("//div[@class='passwordPrompt']"):
+            session.close()
+            raise DirectDownloadLinkException("ERROR: Wrong password.")
     if not (final_link := html.xpath("//a[@id='downloadButton']/@href")):
         session.close()
         raise DirectDownloadLinkException(
             "ERROR: No links found in this page Try Again"
         )
     if final_link[0].startswith("//"):
-        return mediafire(f"https://{final_link[0][2:]}", session)
+        final_url = f"https://{final_link[0][2:]}"
+        if _password:
+            final_url += f"::{_password}"
+        return mediafire(final_url, session)
     session.close()
     return final_link[0]
 
@@ -378,7 +402,10 @@ def streamtape(url):
             html = HTML(session.get(url).text)
     except Exception as e:
         raise DirectDownloadLinkException(f"ERROR: {e.__class__.__name__}") from e
-    if not (script := html.xpath("//script[contains(text(),'ideoooolink')]/text()")):
+    script = html.xpath(
+        "//script[contains(text(),'ideoooolink')]/text()"
+    ) or html.xpath("//script[contains(text(),'ideoolink')]/text()")
+    if not script:
         raise DirectDownloadLinkException("ERROR: requeries script not found")
     if not (link := findall(r"(&expires\S+)'", script[0])):
         raise DirectDownloadLinkException("ERROR: Download link not found")
@@ -499,7 +526,7 @@ def krakenfiles(url):
             raise DirectDownloadLinkException(f"ERROR: {e.__class__.__name__}") from e
         html = HTML(_res.text)
         if post_url := html.xpath('//form[@id="dl-form"]/@action'):
-            post_url = f"https:{post_url[0]}"
+            post_url = f"https://krakenfiles.com{post_url[0]}"
         else:
             raise DirectDownloadLinkException("ERROR: Unable to find post link.")
         if token := html.xpath('//input[@id="dl-token"]/@value'):
@@ -1022,6 +1049,11 @@ def gofile(url):
 
 
 def mediafireFolder(url):
+    if "::" in url:
+        _password = url.split("::")[-1]
+        url = url.split("::")[-2]
+    else:
+        _password = ""
     try:
         raw = url.split("/", 4)[-1]
         folderkey = raw.split("/", 1)[0]
@@ -1083,6 +1115,17 @@ def mediafireFolder(url):
             html = HTML(session.get(url).text)
         except:
             return
+        if html.xpath("//div[@class='passwordPrompt']"):
+            if not _password:
+                raise DirectDownloadLinkException(
+                    f"ERROR: {PASSWORD_ERROR_MESSAGE}".format(url)
+                )
+            try:
+                html = HTML(session.post(url, data={"downloadp": _password}).text)
+            except:
+                return
+            if html.xpath("//div[@class='passwordPrompt']"):
+                return
         if final_link := html.xpath("//a[@id='downloadButton']/@href"):
             return final_link[0]
 
@@ -1400,15 +1443,16 @@ def filelions_and_streamwish(url):
             "filelions.site",
             "cabecabean.lol",
             "filelions.online",
+            "mycloudz.cc",
         ]
     ):
         apiKey = config_dict["FILELION_API"]
-        apiUrl = "https://api.filelions.co"
+        apiUrl = "https://vidhideapi.com"
     elif any(
         x in hostname
         for x in [
             "embedwish.com",
-            "streamwish.com",
+            "kissmovies.net",
             "kitabmarkaz.xyz",
             "wishfast.top",
             "streamwish.to",
@@ -1445,13 +1489,13 @@ def filelions_and_streamwish(url):
         if quality == version["name"]:
             return version["url"]
         elif version["name"] == "l":
-            error += f"\nLow"
+            error += "\nLow"
         elif version["name"] == "n":
-            error += f"\nNormal"
+            error += "\nNormal"
         elif version["name"] == "o":
-            error += f"\nOriginal"
+            error += "\nOriginal"
         elif version["name"] == "h":
-            error += f"\nHD"
+            error += "\nHD"
         error += f" <code>{url}_{version['name']}</code>"
     raise DirectDownloadLinkException(f"ERROR: {error}")
 

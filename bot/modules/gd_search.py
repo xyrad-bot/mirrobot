@@ -13,12 +13,12 @@ from bot.helper.telegram_helper.message_utils import sendMessage, editMessage
 async def list_buttons(user_id, isRecursive=True, user_token=False):
     buttons = ButtonMaker()
     buttons.ibutton(
-        "Folders", f"list_types {user_id} folders {isRecursive} {user_token}"
+        "Folder", f"list_types {user_id} folders {isRecursive} {user_token}"
     )
-    buttons.ibutton("Files", f"list_types {user_id} files {isRecursive} {user_token}")
-    buttons.ibutton("Both", f"list_types {user_id} both {isRecursive} {user_token}")
+    buttons.ibutton("File", f"list_types {user_id} files {isRecursive} {user_token}")
+    buttons.ibutton("Keduanya", f"list_types {user_id} both {isRecursive} {user_token}")
     buttons.ibutton(
-        f"Recursive: {isRecursive}",
+        f"Rekursif: {isRecursive}",
         f"list_types {user_id} rec {isRecursive} {user_token}",
     )
     buttons.ibutton(
@@ -49,10 +49,10 @@ async def _list_drive(key, message, item_type, isRecursive, user_token, user_id)
         except Exception as e:
             await editMessage(message, e)
             return
-        msg = f"<b>Found {contents_no} result for <i>{key}</i></b>"
+        msg = f"<b> Ketemu nih {contents_no} hasil buat <i>{key}</i></b>"
         await editMessage(message, msg, button)
     else:
-        await editMessage(message, f"No result found for <i>{key}</i>")
+        await editMessage(message, f"Yah..nihil <i>{key}</i>")
 
 
 @new_task
@@ -62,34 +62,34 @@ async def select_type(_, query):
     key = message.reply_to_message.text.split(maxsplit=1)[1].strip()
     data = query.data.split()
     if user_id != int(data[1]):
-        return await query.answer(text="Not Yours!", show_alert=True)
+        return await query.answer(text="Bukan milikmu!", show_alert=True)
     elif data[2] == "rec":
         await query.answer()
         isRecursive = not bool(eval(data[3]))
         buttons = await list_buttons(user_id, isRecursive, eval(data[4]))
-        return await editMessage(message, "Choose list options:", buttons)
+        return await editMessage(message, "Pilih opsinya:", buttons)
     elif data[2] == "ut":
         await query.answer()
         user_token = not bool(eval(data[4]))
         buttons = await list_buttons(user_id, eval(data[3]), user_token)
-        return await editMessage(message, "Choose list options:", buttons)
+        return await editMessage(message, "Pilih opsinya:", buttons)
     elif data[2] == "cancel":
         await query.answer()
-        return await editMessage(message, "list has been canceled!")
+        return await editMessage(message, "list dibatalkan!")
     await query.answer()
     item_type = data[2]
     isRecursive = eval(data[3])
     user_token = eval(data[4])
-    await editMessage(message, f"<b>Searching for <i>{key}</i></b>")
+    await editMessage(message, f"<b>Sabar, ngambil link <i>{key}</i></b>")
     await _list_drive(key, message, item_type, isRecursive, user_token, user_id)
 
 
 async def gdrive_search(_, message):
     if len(message.text.split()) == 1:
-        return await sendMessage(message, "Send a search key along with command")
+        return await sendMessage(message, "Kirim cmd di sertai kata kunci!")
     user_id = message.from_user.id
     buttons = await list_buttons(user_id)
-    await sendMessage(message, "Choose list options:", buttons)
+    await sendMessage(message, "Pilih opsinya:", buttons)
 
 
 bot.add_handler(

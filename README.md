@@ -494,7 +494,7 @@ qbleech - or /ql Leech torrent using qBittorrent
 jdleech - or /jl Leech using jdownloader
 nzbleech - or /nl Leech using sabnzbd
 ytdlleech - or /yl Leech yt-dlp supported links
-clone - Copy file/folder to Drive
+clone - or /c Copy file/folder to Drive
 count - Count file/folder from GDrive
 usetting - or /us User settings
 bsetting - or /bs Bot settings
@@ -503,7 +503,7 @@ sel - Select files from torrent
 rss - Rss menu
 list - Search files in Drive
 search - Search for torrents with API
-cancel - or /c Cancel a task
+abort - or /a Cancel a task
 cancelall - Cancel all tasks
 forcestart - or /fs to start task from queue
 del - Delete file/folder from GDrive
