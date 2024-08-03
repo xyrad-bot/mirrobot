@@ -511,9 +511,9 @@ log - Get the Bot Log
 shell - Run commands in Shell
 aexec - Execute async function
 exec - Execute sync function
-restart - Restart the Bot
+restart - or /r Restart the Bot
 stats - Bot Usage Stats
-ping - Ping the Bot
+ping - or /p Ping the Bot
 help - All cmds with description
 ```
 
